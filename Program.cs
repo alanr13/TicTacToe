@@ -25,6 +25,7 @@ class Board
 class Player
 {
     public char side;
+    public int roundsWon = 0;
     public Player()
     {
 
@@ -33,6 +34,7 @@ class Player
 
 class Game
 {
+    int round = 0;
     Board board = new Board();
     static char[] side = { 'X', 'O' };
     Player player1 = new Player();
@@ -45,65 +47,88 @@ class Game
 
     public void Run()
     {
-        int turns = 0;
-        char input;
-        currentPlayer = player2;
-        Console.WriteLine("Which side do you choose?");
-        while (true)
+        while (round < 5)
         {
-            input = Console.ReadKey().KeyChar;
-            if (Char.ToUpper(input) == 'X')
-            {
-                player1.side = side[0];
-                player2.side = side[1];
-                break;
-            }
-            else if (Char.ToUpper(input) == 'O')
-            {
-                player1.side = side[1];
-                player2.side = side[0];
-                break;
-            }
-            else
-            {
-                Console.WriteLine("Wrong sign. Try again");
-            }
-        }
+            round++;
+            Console.WriteLine($"Round {round}");
+            Thread.Sleep(3000);
+            Console.Clear();
 
-        Console.WriteLine("");
-        board.PrintBoard();
-        while (true)
-        {
+            int turns = 0;
+            char input;
+            currentPlayer = player2;
+            Console.WriteLine("Which side do you choose?");
             while (true)
             {
-                turns++;
-                Console.WriteLine(currentPlayer == player1? $"Player 1, where do you want to place the sign?" : $"Player 2, where do you want to place the sign?");
                 input = Console.ReadKey().KeyChar;
-                if (IsNotOccupied(input))
+                if (Char.ToUpper(input) == 'X')
                 {
+                    player1.side = side[0];
+                    player2.side = side[1];
+                    break;
+                }
+                else if (Char.ToUpper(input) == 'O')
+                {
+                    player1.side = side[1];
+                    player2.side = side[0];
                     break;
                 }
                 else
                 {
-                    Console.WriteLine("\nThat place is occupied. Try again.");
-                } 
+                    Console.WriteLine("Wrong sign. Try again");
+                }
             }
+
             Console.WriteLine("");
             board.PrintBoard();
+            while (true)
+            {
+                while (true)
+                {
+                    turns++;
+                    Console.WriteLine(currentPlayer == player1 ? $"Player 1, where do you want to place the sign?" : $"Player 2, where do you want to place the sign?");
+                    input = Console.ReadKey().KeyChar;
+                    if (IsNotOccupied(input))
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        Console.WriteLine("\nThat place is occupied. Try again.");
+                    }
+                }
+                Console.WriteLine("");
+                board.PrintBoard();
 
-            if (turns > 8 || GameDecider())
-            {
-                Winner();
-                break;
-            }
+                if (turns > 8)
+                {
+                    GameResult();
+                    Set2DValue(board.GameBoard);
+                    player1.roundsWon++;
+                    player2.roundsWon++;
+                    break;
+                }
+                else if(GameDecider())
+                {
+                    GameResult();
+                    Set2DValue(board.GameBoard);
+                    currentPlayer.roundsWon++;
+                    break;
+                }
 
-            if(currentPlayer == player2)
-            {
-                currentPlayer = player1;
-            }
-            else
-            {
-                currentPlayer = player2;
+                if(currentPlayer.roundsWon == 3)
+                {
+                    Console.WriteLine(currentPlayer == player1 ? $"Player 1 won the game." : $"Player 2 won the game.");
+                    Environment.Exit(0);
+                }
+                if (currentPlayer == player2)
+                {
+                    currentPlayer = player1;
+                }
+                else
+                {
+                    currentPlayer = player2;
+                }
             }
         }
     }
@@ -122,8 +147,7 @@ class Game
             return true;
         return false;
     }
-
-    void Winner()
+    void GameResult()
     {
         Console.WriteLine(GameDecider() ? $"{currentPlayer} won." : "Draw.");
     }
@@ -201,5 +225,17 @@ class Game
 
         }
         return false;
+    }
+
+    char[,] Set2DValue(char[,] array)
+    {
+        for(int i = 0; i < array.GetLength(0); i++)
+        {
+            for(int j = 0; j < array.GetLength(1); j++)
+            {
+                array[i, j] = ' ';
+            }
+        }
+        return array;
     }
 }
